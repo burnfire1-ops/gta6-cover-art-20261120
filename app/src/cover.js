@@ -10,12 +10,43 @@ export const PALETTE = {
 };
 
 export const GRADES = {
-  sunset: { name: 'Teluk Sunset', filter: 'saturate(1.25) contrast(1.08)', sky: ['#00D0B8', '#FF1F8A', '#FF7A1A'], tint: 'rgba(255,122,26,0.10)', chrome: ['#F2C95E', '#FF7A1A', '#FF1F8A'] },
-  neon: { name: 'Neon Night', filter: 'saturate(1.45) contrast(1.15) hue-rotate(-12deg)', sky: ['#1A0B2E', '#17DDD6', '#FF1F8A'], tint: 'rgba(23,221,214,0.12)', chrome: ['#17DDD6', '#FF1F8A', '#F2C95E'] },
-  golden: { name: 'Golden Hour', filter: 'sepia(0.35) saturate(1.3) contrast(1.06)', sky: ['#F2C95E', '#FF7A1A', '#B45309'], tint: 'rgba(242,201,94,0.14)', chrome: ['#FFF3D6', '#F2C95E', '#FF7A1A'] },
+  sunset: { name: 'Teluk Sunset', filter: 'saturate(1.6) contrast(1.22)', sky: ['#00D0B8', '#FF1F8A', '#FF7A1A'], tint: 'rgba(255,122,26,0.20)', chrome: ['#F2C95E', '#FF7A1A', '#FF1F8A'] },
+  neonshore: { name: 'Neon Shore', filter: 'saturate(1.85) contrast(1.45) hue-rotate(-8deg)', sky: ['#1A0B2E', '#FF1F8A', '#FF7A1A'], tint: 'rgba(255,31,138,0.22)', chrome: ['#17DDD6', '#FF1F8A', '#F2C95E'] },
+  neon: { name: 'Neon Night', filter: 'saturate(1.7) contrast(1.3) hue-rotate(-20deg)', sky: ['#1A0B2E', '#17DDD6', '#FF1F8A'], tint: 'rgba(23,221,214,0.20)', chrome: ['#17DDD6', '#FF1F8A', '#F2C95E'] },
+  golden: { name: 'Golden Hour', filter: 'sepia(0.5) saturate(1.5) contrast(1.12)', sky: ['#F2C95E', '#FF7A1A', '#B45309'], tint: 'rgba(242,201,94,0.20)', chrome: ['#FFF3D6', '#F2C95E', '#FF7A1A'] },
   teal: { name: 'Tropic Teal', filter: 'saturate(1.35) contrast(1.05) hue-rotate(8deg)', sky: ['#00D0B8', '#2E7D5B', '#FFF3D6'], tint: 'rgba(0,208,184,0.12)', chrome: ['#FFF3D6', '#00D0B8', '#2E7D5B'] },
-  halftone: { name: 'Comic Halftone', filter: 'saturate(1.5) contrast(1.35)', sky: ['#FFF3D6', '#FF1F8A', '#00D0B8'], tint: 'rgba(255,31,138,0.06)', chrome: ['#F2C95E', '#FF7A1A', '#FF1F8A'] },
+  halftone: { name: 'Comic Halftone', filter: 'saturate(1.9) contrast(1.6)', sky: ['#FFF3D6', '#FF1F8A', '#00D0B8'], tint: 'rgba(255,31,138,0.14)', chrome: ['#F2C95E', '#FF7A1A', '#FF1F8A'] },
 };
+
+// THEMES — three moods of the same world. A theme IS a grade (plus its
+// sky/chrome accent, which already live in GRADES): no parallel grade
+// system. Same Harbor Six layout, same title zone, same furniture — only
+// the grade/mood changes, so the three themes read as three distinct
+// covers of one Bay of Light. Names are ours, never the opponent's.
+export const THEMES = {
+  sunset: { name: 'Teluk Sunset', grade: 'sunset', mood: 'Teal → pink → orange', swatch: ['#00D0B8', '#FF1F8A', '#FF7A1A'] },
+  neon: { name: 'Neon Night', grade: 'neon', mood: 'Deep purple + cyan neon', swatch: ['#1A0B2E', '#17DDD6', '#FF1F8A'] },
+  golden: { name: 'Golden Hour', grade: 'golden', mood: 'Sand + amber vintage gold', swatch: ['#F2C95E', '#FF7A1A', '#B45309'] },
+};
+
+// Grade intensity (sliders.gradeAmt, 0-100) scales a grade toward raw at 0 and
+// full strength at 100: saturate/contrast interpolate from 1, sepia and
+// hue-rotate scale from 0, tint alpha scales from 0. The title chrome and all
+// furniture are never touched — only the photos in the panels.
+function scaleFilter(filter, amt) {
+  const sc = (v) => (1 + (v - 1) * amt).toFixed(2);
+  return filter
+    .replace(/saturate\(([\d.]+)\)/, (_, v) => `saturate(${sc(+v)})`)
+    .replace(/contrast\(([\d.]+)\)/, (_, v) => `contrast(${sc(+v)})`)
+    .replace(/sepia\(([\d.]+)\)/, (_, v) => 'sepia(' + (+v * amt).toFixed(2) + ')')
+    .replace(/hue-rotate\((-?[\d.]+)deg\)/, (_, v) => `hue-rotate(${Math.round(+v * amt)}deg)`);
+}
+
+function scaleTint(tint, amt) {
+  const m = tint.match(/rgba\((\d+),(\d+),(\d+),([\d.]+)\)/);
+  if (!m) return tint;
+  return `rgba(${m[1]},${m[2]},${m[3]},${(+m[4] * amt).toFixed(3)})`;
+}
 
 export const ROLES = ['THE DRIVER', 'THE BOSS', 'THE ANGLER', 'THE LOOKOUT', 'THE COURIER', 'THE FIXER', 'THE ACE'];
 export const SUBS = [
@@ -49,12 +80,19 @@ export function layoutPanels(id, W, H) {
       return { panels: [0, 1, 2].map((i) => ({ x: (W / 3) * i - s, y: 0, w: W / 3 + s * 2, h: H * 0.9, slant: s / (H * 0.9), role: ROLES[i * 2], sub: SUBS[i * 2] })), band: { y: H * 0.4, h: H * 0.2 }, foot, hero: 1 };
     }
     case 'fivecrop': return { panels: [...row(top, 2, 0.14), ...row(bot, 3, 0.14)], band, foot, hero: 0 };
+    case 'bayfour': return { panels: [...row(top, 2, 0.14), ...row(bot, 2, 0.14)], band, foot, hero: -1 }; // Bayfront Four: 2+2 wide panels, same band/foot grammar
+    case 'sunsetstrip': {
+      // Sunset Strip: 4 narrow top panels + 2 wide bottom panels. Bottom
+      // roles remapped to 4,5 so no role repeats (row() would reuse 3,4).
+      const bot2 = row(bot, 2, 0.14).map((p, i) => ({ ...p, role: ROLES[4 + i], sub: SUBS[4 + i] }));
+      return { panels: [...row(top, 4, 0.14), ...bot2], band, foot, hero: -1 };
+    }
     case 'hero': return { panels: [...row(top, 3, 0.14), ...row(bot, 3, 0.14)], band, foot, hero: 1, heroRect: { x: W * 0.33, y: H * 0.03, w: W * 0.34, h: H * 0.6 } };
     default: return { panels: [...row(top, 3, 0.14), ...row(bot, 3, 0.14)], band, foot, hero: -1 }; // harbor6
   }
 }
 
-export const LAYOUT_NAMES = { harbor6: 'Harbor Six', mosaic7: 'Seven Mosaic', trio: 'Diagonal Trio', fivecrop: 'One-Photo Five-Crop', hero: 'Hero Pop-Out' };
+export const LAYOUT_NAMES = { harbor6: 'Harbor Six', mosaic7: 'Seven Mosaic', trio: 'Diagonal Trio', fivecrop: 'One-Photo Five-Crop', hero: 'Hero Pop-Out', bayfour: 'Bayfront Four', sunsetstrip: 'Sunset Strip' };
 
 function fitFont(ctx, text, maxW, start, font) {
   let s = start;
@@ -94,9 +132,9 @@ function halftone(ctx, W, H, amount, clipRects) {
   for (const r of clipRects) ctx.rect(r.x, r.y, r.w, r.h);
   ctx.clip();
   const step = Math.max(6, W / 160);
-  ctx.fillStyle = `rgba(18,8,31,${0.16 * amount})`;
+  ctx.fillStyle = `rgba(18,8,31,${0.22 * amount})`;
   for (let y = step / 2; y < H; y += step) for (let x = step / 2; x < W; x += step) {
-    ctx.beginPath(); ctx.arc(x + ((y / step) % 2) * step / 2, y, step * 0.16 * amount + 0.6, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + ((y / step) % 2) * step / 2, y, step * 0.22 * amount + 0.8, 0, 7); ctx.fill();
   }
   ctx.restore();
 }
@@ -143,22 +181,27 @@ export function drawCover(canvas, state) {
   const g = GRADES[state.grade] || GRADES.sunset;
   const L = layoutPanels(state.layout, W, H);
   const sl = state.sliders || {};
+  // Grade intensity: 0 = near-raw photo, 100 = full grade. Default 85 keeps
+  // the grade clearly visible without maxing the slider out.
+  const amt = Math.min(100, Math.max(0, sl.gradeAmt ?? 85)) / 100;
+  const gradeFilter = scaleFilter(g.filter, amt);
+  const gradeTint = scaleTint(g.tint, amt);
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = PALETTE.deepPurple; ctx.fillRect(0, 0, W, H);
 
   // Sky wash behind the panels (grade identity at a glance).
   const sky = ctx.createLinearGradient(0, 0, W, H * 0.5);
   g.sky.forEach((c, i) => sky.addColorStop(i / (g.sky.length - 1), c));
-  ctx.globalAlpha = 0.22; ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.22 * (0.15 + 0.85 * amt); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
 
   // Panels.
   const panels = L.panels.map((p, i) => ({ ...p, ...(state.panels?.[i] || {}) }));
   panels.forEach((p, i) => {
     ctx.save(); clipPanel(ctx, p);
-    ctx.filter = `${g.filter} brightness(${1 + (sl.paint || 0) * 0.0012})`;
+    ctx.filter = `${gradeFilter} brightness(${1 + (sl.paint || 0) * 0.0012})`;
     drawPhoto(ctx, state.images[p.img ?? 0], p, p);
     ctx.filter = 'none';
-    ctx.fillStyle = g.tint; ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.fillStyle = gradeTint; ctx.fillRect(p.x, p.y, p.w, p.h);
     ctx.restore();
     ctx.strokeStyle = 'rgba(255,243,214,0.9)'; ctx.lineWidth = Math.max(2, 3 * u);
     ctx.beginPath();
@@ -170,8 +213,8 @@ export function drawCover(canvas, state) {
   if (L.heroRect) {
     const hp = { ...L.heroRect, ...(state.panels?.[1] || {}) };
     ctx.save(); ctx.beginPath(); ctx.rect(hp.x, hp.y, hp.w, hp.h); ctx.clip();
-    ctx.filter = g.filter; drawPhoto(ctx, state.images[hp.img ?? 0], hp, hp); ctx.filter = 'none';
-    ctx.fillStyle = g.tint; ctx.fillRect(hp.x, hp.y, hp.w, hp.h); ctx.restore();
+    ctx.filter = gradeFilter; drawPhoto(ctx, state.images[hp.img ?? 0], hp, hp); ctx.filter = 'none';
+    ctx.fillStyle = gradeTint; ctx.fillRect(hp.x, hp.y, hp.w, hp.h); ctx.restore();
     ctx.strokeStyle = PALETTE.sand; ctx.lineWidth = Math.max(3, 4 * u); ctx.strokeRect(hp.x, hp.y, hp.w, hp.h);
   }
 
@@ -273,8 +316,12 @@ export function drawCover(canvas, state) {
     ctx.restore(); ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
   }
 
-  // Halftone + grain on top of everything photographic.
-  const ht = state.grade === 'halftone' ? 1 : (sl.halftone || 0) / 100;
+  // Halftone + grain on top of everything photographic. The halftone grade is
+  // a bold comic look (dots at 1.6x, scaled by grade intensity); Neon Shore
+  // carries a lighter halftone (0.7x) as part of its neon-comic grade. The
+  // Halftone slider adds dots on top of any grade, independently.
+  const htBase = state.grade === 'halftone' ? 1.6 : state.grade === 'neonshore' ? 0.7 : 0;
+  const ht = Math.min(1.8, htBase * amt + (sl.halftone || 0) / 100);
   halftone(ctx, W, H, ht, L.panels.map((p) => ({ x: p.x, y: p.y, w: p.w, h: p.h })));
   grain(ctx, W, H, (sl.grain || 0) / 100 * 0.9);
 }

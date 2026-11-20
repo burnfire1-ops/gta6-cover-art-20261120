@@ -1,7 +1,7 @@
 // Bay of Light Cover Studio — UI: 3-step wizard, live canvas preview (drag to pan,
 // scroll to zoom), per-panel controls, undo/redo, one-click export of all three sizes.
 // Photos never leave the machine: FileReader + object URLs only, no upload.
-import { drawCover, layoutPanels, LAYOUT_NAMES, GRADES, ROLES, SUBS } from './cover.js';
+import { drawCover, layoutPanels, LAYOUT_NAMES, GRADES, THEMES, ROLES, SUBS } from './cover.js';
 import { runShot } from './shots.js';
 
 const $ = (id) => document.getElementById(id);
@@ -14,7 +14,7 @@ const state = {
   images: [], panels: [], layout: 'harbor6', grade: 'sunset',
   title: 'BAY OF LIGHT', script: 'one last summer', tagline: 'SIX LIVES · ONE BAY · NO WAY BACK',
   quote: 'PURE GOLDEN-HOUR MAYHEM',
-  sliders: { paint: 50, gradeAmt: 70, halftone: 0, grain: 25, glow: 40 },
+  sliders: { paint: 50, gradeAmt: 85, halftone: 0, grain: 25, glow: 40 },
   extras: { tags: true, heat: true, seal: true },
   selected: 0, size: 1,
 };
@@ -106,7 +106,7 @@ function surprise() {
   const layouts = Object.keys(LAYOUT_NAMES), grades = Object.keys(GRADES);
   state.layout = layouts[Math.floor(Math.random() * layouts.length)];
   state.grade = grades[Math.floor(Math.random() * grades.length)];
-  const titles = [['PIER PRESSURE', 'after dark'], ['CAHAYA NIGHTS', 'one last summer'], ['SALT & SIRENS', 'tide is turning'], ['NEON HARBOR', 'no curfew']];
+  const titles = [['DERMAGA NIGHTS', 'after dark'], ['CAHAYA NIGHTS', 'one last summer'], ['SALT & SIRENS', 'tide is turning'], ['TELUK LIGHTS', 'no curfew']];
   const [t, s] = titles[Math.floor(Math.random() * titles.length)];
   state.title = t; state.script = s;
   $('title').value = t; $('script').value = s;
@@ -116,10 +116,23 @@ function surprise() {
 function syncPickers() {
   document.querySelectorAll('#layouts button').forEach((b) => b.classList.toggle('sel', b.dataset.v === state.layout));
   document.querySelectorAll('#grades button').forEach((b) => b.classList.toggle('sel', b.dataset.v === state.grade));
+  // A theme is active exactly when the current grade is that theme's grade.
+  document.querySelectorAll('#themes button').forEach((b) => b.classList.toggle('sel', THEMES[b.dataset.v]?.grade === state.grade));
 }
 
 function buildPickers() {
-  const lb = $('layouts'), gb = $('grades');
+  const tb = $('themes'), lb = $('layouts'), gb = $('grades');
+  for (const [id, t] of Object.entries(THEMES)) {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.v = id; b.className = 'themeBtn';
+    b.title = `${t.name} — ${t.mood}. One click switches the whole cover mood.`;
+    const sw = document.createElement('span'); sw.className = 'swatch';
+    sw.style.background = `linear-gradient(90deg, ${t.swatch.join(', ')})`;
+    const nm = document.createElement('span'); nm.className = 'tname'; nm.textContent = t.name;
+    const md = document.createElement('span'); md.className = 'tmood'; md.textContent = t.mood;
+    b.append(sw, nm, md);
+    b.addEventListener('click', () => { pushHistory(); state.grade = t.grade; syncPickers(); redraw(); });
+    tb.appendChild(b);
+  }
   for (const [id, name] of Object.entries(LAYOUT_NAMES)) {
     const b = document.createElement('button'); b.type = 'button'; b.dataset.v = id; b.textContent = name;
     b.addEventListener('click', () => { pushHistory(); state.layout = id; refillPanels(); syncPickers(); redraw(); });
