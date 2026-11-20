@@ -216,10 +216,11 @@ export function drawCover(canvas, state) {
   // Role tags + sub-lines.
   if (state.extras?.tags !== false) panels.forEach((p) => drawRoleTag(ctx, p, p.role || ROLES[0], p.sub || SUBS[0], W));
 
-  // Location chip + heat on the hero panel.
+  // Location chip + heat inside the title band (left, below the title):
+  // the band is solid colour, so the chip can never cover a face, a hat or
+  // panel text — the old hero-panel anchor put HEAT under THE BOSS's hat.
   if (state.extras?.heat !== false) {
-    const hp = L.heroRect || panels[1] || panels[0];
-    const cx = hp.x + 10 * u, cy = hp.y + 10 * u;
+    const cx = 14 * u, cy = b.y + b.h * 0.63;
     ctx.font = `${Math.max(11, 15 * u)}px Anton, sans-serif`;
     const chip = 'DERMAGA 7 · 7:15 PM';
     const cw = ctx.measureText(chip).width + 20 * u;
