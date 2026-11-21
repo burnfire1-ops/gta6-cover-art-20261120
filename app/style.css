@@ -1,12 +1,210 @@
-html, body { margin: 0; height: 100%; background: #f2f0f4; color: #1d1b22; font: 15px/1.4 system-ui, sans-serif; }
-.app { display: flex; gap: 32px; align-items: center; justify-content: center; height: 100%; padding: 24px; box-sizing: border-box; }
-.controls { display: flex; flex-direction: column; gap: 14px; width: 280px; }
-.controls h1 { margin: 0; font-size: 28px; }
-.controls p { margin: 0; color: #5c5866; }
-label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
-input[type=text] { font: inherit; padding: 8px; border: 1px solid #c9c4d1; border-radius: 6px; }
-button { font: inherit; font-weight: 700; padding: 10px; border: 0; border-radius: 6px; background: #1d1b22; color: #fff; cursor: pointer; }
-canvas { width: min(70vh, 60vw); height: min(70vh, 60vw); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
-body.shot-cover .controls { display: none; }
-body.shot-cover .app { padding: 0; }
-body.shot-cover canvas { width: 100vw; height: 100vh; box-shadow: none; }
+@font-face {
+  font-family: 'Anton';
+  src: url('./fonts/Anton-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pacifico';
+  src: url('./fonts/Pacifico-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: #1A0B2E;
+  color: #FFF3D6;
+  font: 14px/1.5 system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+/* Top bar: ink background, sand rule underneath. */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 20px;
+  background: #12081F;
+  border-bottom: 3px solid #F2C95E;
+}
+.brand { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name {
+  font-family: Anton, sans-serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #F2C95E, #FF7A1A, #FF1F8A);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.brand-sub {
+  font-family: Anton, sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #00D0B8;
+}
+.steps { display: flex; gap: 8px; margin-left: auto; }
+.history { display: flex; gap: 8px; }
+
+button {
+  font: inherit;
+  color: #FFF3D6;
+  background: #2A1545;
+  border: 1px solid #4B2A72;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+button:hover { border-color: #FF1F8A; }
+button:disabled { opacity: 0.4; cursor: default; }
+button.primary, button.active { background: #FF1F8A; border-color: #FF1F8A; color: #fff; }
+button.wide { width: 100%; margin-top: 10px; }
+
+.step-btn.active { background: #FF1F8A; border-color: #FF1F8A; color: #fff; }
+
+/* Two columns: wizard left (340px), stage right. */
+.layout {
+  display: flex;
+  gap: 24px;
+  padding: 14px 20px;
+  align-items: flex-start;
+}
+.panel-col {
+  width: 340px;
+  flex: none;
+  background: #241239;
+  border: 1px solid #4B2A72;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stage-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.stage { display: flex; justify-content: center; }
+
+h2 {
+  font-family: Anton, sans-serif;
+  color: #F2C95E;
+  font-size: 20px;
+  margin: 0 0 8px;
+  letter-spacing: 1px;
+}
+h3 {
+  font-family: Anton, sans-serif;
+  color: #00D0B8;
+  font-size: 15px;
+  margin: 12px 0 6px;
+  letter-spacing: 1px;
+}
+
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 7px; font-weight: 600; }
+.field input[type=text] {
+  font: inherit;
+  padding: 6px 10px;
+  background: #12081F;
+  color: #FFF3D6;
+  border: 1px solid #4B2A72;
+  border-radius: 6px;
+}
+.field input[type=text]:focus { outline: 2px solid #FF1F8A; }
+
+.dropzone {
+  border: 2px dashed #00D0B8;
+  border-radius: 8px;
+  padding: 22px 14px;
+  text-align: center;
+  cursor: pointer;
+}
+.dropzone.drag-over { background: rgba(0, 208, 184, 0.12); }
+.drop-big { margin: 0 0 6px; font-weight: 700; }
+.dim { color: #B9A8D6; font-size: 13px; }
+.dim p, p.dim { margin: 6px 0; }
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.thumbs canvas {
+  width: 72px;
+  height: 96px;
+  object-fit: cover;
+  border: 2px solid #4B2A72;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.thumbs canvas:hover { border-color: #FF1F8A; }
+.thumbs canvas.selected { border-color: #F2C95E; }
+
+/* Theme cards: gradient swatch, name, mood. Active card is pink with a sand ring. */
+.themes { display: flex; flex-direction: column; gap: 7px; }
+.theme-card {
+  text-align: left;
+  padding: 0 0 7px;
+  overflow: hidden;
+  background: #2A1545;
+}
+.theme-card .swatch { height: 26px; }
+.theme-card .theme-name {
+  display: block;
+  font-family: Anton, sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 5px 12px 1px;
+}
+.theme-card .theme-mood { display: block; font-size: 11px; color: #B9A8D6; padding: 0 12px; }
+.theme-card.active {
+  background: #FF1F8A;
+  border-color: #F2C95E;
+  box-shadow: 0 0 0 2px #F2C95E;
+}
+.theme-card.active .theme-mood { color: #FFE3F0; }
+
+.chip-row button.active { background: #F2C95E; border-color: #F2C95E; color: #12081F; font-weight: 700; }
+
+.sliders { display: flex; flex-direction: column; gap: 6px; }
+.slider-row { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.slider-row input[type=range] { flex: 1; accent-color: #FF1F8A; }
+.slider-val { min-width: 28px; text-align: right; color: #B9A8D6; }
+
+#cover {
+  max-width: 560px;
+  max-height: calc(100vh - 190px);
+  border-radius: 6px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+  background: #12081F;
+}
+#cover:active { cursor: grabbing; }
+.hint { color: #B9A8D6; margin: 0; }
+
+.export-all {
+  width: 100%;
+  max-width: 560px;
+  background: #FF1F8A;
+  border-color: #FF1F8A;
+  color: #fff;
+  font-family: Anton, sans-serif;
+  font-size: 17px;
+  letter-spacing: 1px;
+  padding: 14px;
+}
+.status { color: #B9A8D6; margin: 0; text-align: center; }
+
+/* Screenshot scenes: cover alone fills the viewport; editor shows the app. */
+body.shot-cover .topbar,
+body.shot-cover .panel-col,
+body.shot-cover .hint,
+body.shot-cover .status,
+body.shot-cover .export-all { display: none; }
+body.shot-cover .layout { padding: 0; }
+body.shot-cover .stage-col { width: 100%; }
+body.shot-cover #cover {
+  max-width: none;
+  max-height: none;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+}
