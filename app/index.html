@@ -3,20 +3,158 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cover Snap</title>
+<title>Bay of Light Cover Studio</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-name">BAY OF LIGHT</span>
+    <span class="brand-sub">Cover Studio · Vol. 01</span>
+  </div>
+  <nav class="steps-nav" aria-label="Steps">
+    <button type="button" class="step-nav active" data-step="1">1 · Add photos</button>
+    <button type="button" class="step-nav" data-step="2">2 · Caption &amp; look</button>
+    <button type="button" class="step-nav" data-step="3">3 · Export PNG</button>
+  </nav>
+  <div class="history">
+    <button type="button" id="undo" disabled>Undo</button>
+    <button type="button" id="redo" disabled>Redo</button>
+  </div>
+</header>
+
 <main class="app">
-  <section class="controls">
-    <h1>Cover Snap</h1>
-    <p>A photo and a caption, made into a square cover.</p>
-    <label>Photo <input id="photo" type="file" accept="image/*"></label>
-    <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
-    <button id="export" type="button">Export PNG 1080 x 1080</button>
-    <p id="status" role="status"></p>
+  <section class="panel-col" aria-label="Editor">
+    <!-- Step 1 -->
+    <div class="step" id="step-1">
+      <h2>Add photos</h2>
+      <div class="dropzone" id="dropzone" tabindex="0">
+        <p>Drop a photo here, or click to browse.<br>You can also paste an image from the clipboard.</p>
+        <input type="file" id="browse" accept="image/*" multiple hidden>
+      </div>
+      <p class="count" id="photo-count">No photos yet.</p>
+      <div class="row">
+        <button type="button" id="load-samples" class="primary">Load sample photos</button>
+        <button type="button" id="auto-layout">Auto layout</button>
+        <button type="button" id="surprise">🎲 Surprise me</button>
+      </div>
+      <div class="thumbs" id="thumbs"></div>
+      <p class="dim">Your photos never leave this machine. One photo fills every panel with a smart crop — each panel takes a different slice of it.</p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step hidden" id="step-2">
+      <h2>Caption &amp; look</h2>
+      <div class="caption-grid">
+        <label>Title
+          <input type="text" id="in-title" maxlength="24" value="BAY OF LIGHT">
+        </label>
+        <label>Script line
+          <input type="text" id="in-script" maxlength="32" value="one last summer">
+        </label>
+        <label class="span2">Tagline
+          <input type="text" id="in-tagline" maxlength="48" value="SIX LIVES · ONE BAY · NO WAY BACK">
+        </label>
+        <label class="span2">Quote
+          <input type="text" id="in-quote" maxlength="40" value="PURE GOLDEN-HOUR MAYHEM">
+        </label>
+      </div>
+
+      <h3>Theme — three covers, one world</h3>
+      <div class="theme-cards" id="theme-cards">
+        <button type="button" class="theme-card active" data-theme="sunset">
+          <span class="swatch" style="background:linear-gradient(90deg,#00D0B8,#FF1F8A,#FF7A1A)"></span>
+          <span class="theme-name">Teluk Sunset</span>
+          <span class="theme-mood">Teal lalu pink lalu oranye.</span>
+        </button>
+        <button type="button" class="theme-card" data-theme="neon">
+          <span class="swatch" style="background:linear-gradient(90deg,#1A0B2E,#17DDD6,#FF1F8A)"></span>
+          <span class="theme-name">Neon Night</span>
+          <span class="theme-mood">Ungu gelap + cyan neon.</span>
+        </button>
+        <button type="button" class="theme-card" data-theme="golden">
+          <span class="swatch" style="background:linear-gradient(90deg,#F2C95E,#FF7A1A,#B45309)"></span>
+          <span class="theme-name">Golden Hour</span>
+          <span class="theme-mood">Pasir + emas vintage amber.</span>
+        </button>
+      </div>
+      <p class="dim">One click switches the whole cover mood — same layout, same title, a different Bay of Light. Export any theme, or all three.</p>
+
+      <h3>Layout</h3>
+      <div class="pick" id="layout-pick">
+        <button type="button" class="pick-btn active" data-layout="harbor">Harbor Six</button>
+        <button type="button" class="pick-btn" data-layout="mosaic">Seven Mosaic</button>
+        <button type="button" class="pick-btn" data-layout="diagonal">Diagonal Trio</button>
+        <button type="button" class="pick-btn" data-layout="fivecrop">One-Photo Five-Crop</button>
+        <button type="button" class="pick-btn" data-layout="hero">Hero Pop-Out</button>
+        <button type="button" class="pick-btn" data-layout="bayfront">Bayfront Four</button>
+        <button type="button" class="pick-btn" data-layout="strip">Sunset Strip</button>
+      </div>
+
+      <h3>Grade</h3>
+      <div class="pick" id="grade-pick">
+        <button type="button" class="pick-btn" data-grade="sunset">Teluk Sunset</button>
+        <button type="button" class="pick-btn active" data-grade="shore">Neon Shore</button>
+        <button type="button" class="pick-btn" data-grade="night">Neon Night</button>
+        <button type="button" class="pick-btn" data-grade="golden">Golden Hour</button>
+        <button type="button" class="pick-btn" data-grade="teal">Tropic Teal</button>
+        <button type="button" class="pick-btn" data-grade="halftone">Comic Halftone</button>
+      </div>
+
+      <h3>Look</h3>
+      <label class="slider">Paint <span class="val" id="v-paint">50</span>
+        <input type="range" id="sl-paint" min="0" max="100" value="50">
+      </label>
+      <label class="slider">Grade <span class="val" id="v-grade">85</span>
+        <input type="range" id="sl-grade" min="0" max="100" value="85">
+      </label>
+      <label class="slider">Halftone <span class="val" id="v-halftone">0</span>
+        <input type="range" id="sl-halftone" min="0" max="100" value="0">
+      </label>
+      <label class="slider">Grain <span class="val" id="v-grain">25</span>
+        <input type="range" id="sl-grain" min="0" max="100" value="25">
+      </label>
+      <label class="slider">Glow <span class="val" id="v-glow">40</span>
+        <input type="range" id="sl-glow" min="0" max="100" value="40">
+      </label>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step hidden" id="step-3">
+      <h2>Export PNG</h2>
+      <h3>Size</h3>
+      <div class="pick" id="size-pick">
+        <button type="button" class="pick-btn size-btn" data-size="1080x1080">1080 × 1080</button>
+        <button type="button" class="pick-btn size-btn active" data-size="1080x1350">1080 × 1350</button>
+        <button type="button" class="pick-btn size-btn" data-size="1920x1080">1920 × 1080</button>
+      </div>
+      <button type="button" id="export-one" class="primary">Export this size only</button>
+      <h3 id="panel-label">Panel 1 — THE DRIVER</h3>
+      <div class="pick" id="panel-chips"></div>
+      <label class="slider">Panel zoom <span class="val" id="v-zoom">50</span>
+        <input type="range" id="sl-zoom" min="0" max="100" value="50">
+      </label>
+      <label>Role tag
+        <input type="text" id="in-role" maxlength="20" value="THE DRIVER">
+      </label>
+      <label>Sub-line
+        <input type="text" id="in-sub" maxlength="48" value="DERMAGA 7 · 6:42 PM · LOOKING FOR TROUBLE">
+      </label>
+      <div class="row">
+        <button type="button" id="btn-flip">Flip</button>
+        <button type="button" id="btn-face">Face</button>
+        <button type="button" id="btn-swap">Swap →</button>
+        <button type="button" id="btn-resetcrop">Reset crop</button>
+      </div>
+    </div>
   </section>
-  <canvas id="cover" width="1080" height="1080" aria-label="The cover"></canvas>
+
+  <section class="stage" aria-label="Preview">
+    <canvas id="cover" width="1080" height="1350" aria-label="The cover"></canvas>
+    <p class="hint" id="hint">Click a panel to select it · Drag to move · Scroll to zoom</p>
+    <button type="button" id="export-all">Export all three</button>
+    <p class="status" id="status" role="status">Load a photo to start.</p>
+  </section>
 </main>
 <script type="module" src="./src/main.js"></script>
 </body>

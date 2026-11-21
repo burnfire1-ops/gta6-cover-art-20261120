@@ -1,16 +1,13 @@
-// A working gta6-cover-art-01 entry (Node 22, standard library only): the app is this directory's app/ folder, plain
-// static files a desktop browser loads offline (app/index.html and its ES modules, no library and no network
-// request), and the program hands it in. It copies app/ and screenshots/ from beside this file to /output and writes
-// /output/dossier.json, the summary the judge reads, with the vendored make.fun library. Only the plumbing, not the
-// cover art the bounty asks for: Cover Snap, a plain one-photo square cover with a sunset tint and a bold caption,
-// exported as a 1080 x 1080 PNG. Its two sample photos (app/samples/) were made for make.fun with an image model and
-// are free to use. Build your own GTA-style cover maker in its place, put your 3 or 4 PNG or JPEG screenshots in
-// screenshots/ (the first by name is the cover) and run it.
+// Bay of Light Cover Studio — the hand-in program (Node 22, standard library only).
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
-
+// It takes the finished app (app/) and its three screenshots (screenshots/) from
+// beside this file, copies both into the output directory, and writes the
+// dossier.json the judge reads, using the vendored make.fun library.
+//
+//   MAKEFUN_OUTPUT_DIR=out node main.ts
+//
+// Outside the grader, MAKEFUN_OUTPUT_DIR stands in for /output. When it is
+// unset the program targets /output, the grader's directory.
 import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,15 +16,30 @@ import { buildDossier } from './vendor/makefun-app.ts';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
+// Fail fast, before copying anything: a half-finished entry must never be
+// handed in silently as if it were valid. The page has to exist, the
+// screenshots folder has to exist, and the first screenshot — the cover the
+// judge sees first — has to be there. Anything missing stops the run here.
+const page = join(here, 'app', 'index.html');
+if (!existsSync(page)) {
+  throw new Error('refusing to hand in: app/index.html is missing');
+}
+const shotsDir = join(here, 'screenshots');
+if (!existsSync(shotsDir)) {
+  throw new Error('refusing to hand in: screenshots/ is missing');
+}
+if (!existsSync(join(shotsDir, '1-cover.jpg'))) {
+  throw new Error('refusing to hand in: screenshots/1-cover.jpg is missing');
+}
+
 mkdirSync(out, { recursive: true });
 cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of app
-// files, in all, or a path under app/ over 1000 bytes: app/ counts beside /output's own 1000-entry cap, its
-// screenshots/ and dossier.json).
+// The caps come from the bounty's gate: text at most 163840 bytes, at most four
+// screenshots of at most 262144 bytes each, app at most 993 entries and
+// 50331648 bytes in total, no app path over 1000 bytes.
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {
