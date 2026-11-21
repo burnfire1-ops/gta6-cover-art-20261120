@@ -1,12 +1,106 @@
-html, body { margin: 0; height: 100%; background: #f2f0f4; color: #1d1b22; font: 15px/1.4 system-ui, sans-serif; }
-.app { display: flex; gap: 32px; align-items: center; justify-content: center; height: 100%; padding: 24px; box-sizing: border-box; }
-.controls { display: flex; flex-direction: column; gap: 14px; width: 280px; }
-.controls h1 { margin: 0; font-size: 28px; }
-.controls p { margin: 0; color: #5c5866; }
-label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
-input[type=text] { font: inherit; padding: 8px; border: 1px solid #c9c4d1; border-radius: 6px; }
-button { font: inherit; font-weight: 700; padding: 10px; border: 0; border-radius: 6px; background: #1d1b22; color: #fff; cursor: pointer; }
-canvas { width: min(70vh, 60vw); height: min(70vh, 60vw); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
-body.shot-cover .controls { display: none; }
-body.shot-cover .app { padding: 0; }
-body.shot-cover canvas { width: 100vw; height: 100vh; box-shadow: none; }
+@font-face { font-family: Anton; src: url(./fonts/Anton-Regular.ttf); }
+@font-face { font-family: Pacifico; src: url(./fonts/Pacifico-Regular.ttf); }
+
+html, body { margin: 0; min-height: 100%; background: #1A0B2E; color: #FFF3D6; font: 14px/1.45 system-ui, sans-serif; }
+* { box-sizing: border-box; }
+
+.topbar {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  background: #12081F; border-bottom: 3px solid #F2C95E; padding: 7px 16px;
+}
+.brand { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name {
+  font-family: Anton, sans-serif; font-size: 24px; letter-spacing: 1px;
+  background: linear-gradient(90deg, #F2C95E, #FF7A1A, #FF1F8A);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.brand-sub { font-family: Anton, sans-serif; font-size: 12px; color: #00D0B8; letter-spacing: 2px; }
+.steps-nav { display: flex; gap: 8px; flex: 1; }
+.step-tab, .history button {
+  font: inherit; font-weight: 700; padding: 8px 14px; cursor: pointer;
+  background: #2b1838; color: #FFF3D6; border: 1px solid #4a2a6e; border-radius: 6px;
+}
+.step-tab.active { background: #FF1F8A; border-color: #FF1F8A; color: #fff; }
+.step-tab:hover, .history button:hover { border-color: #FF1F8A; }
+.history { display: flex; gap: 8px; }
+button:disabled { opacity: 0.4; cursor: default; }
+
+.layout { display: flex; gap: 20px; padding: 12px 18px; align-items: flex-start; }
+.panel-col {
+  width: 340px; flex: none; background: #241239; border: 1px solid #4a2a6e;
+  border-radius: 10px; padding: 12px 14px;
+}
+.panel-col h2 { font-family: Anton, sans-serif; color: #F2C95E; font-size: 20px; margin: 0 0 10px; letter-spacing: 0.5px; }
+.panel-col h3 { font-family: Anton, sans-serif; color: #00D0B8; font-size: 15px; margin: 10px 0 5px; letter-spacing: 0.5px; }
+.muted { color: #b9a3d6; font-size: 12.5px; }
+.field { display: flex; flex-direction: column; gap: 3px; font-weight: 600; margin-bottom: 6px; }
+.field input {
+  font: inherit; padding: 6px 10px; background: #12081F; color: #FFF3D6;
+  border: 1px solid #4a2a6e; border-radius: 6px;
+}
+.field input:focus { outline: 2px solid #FF1F8A; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.row.wrap button { flex: 1 1 auto; }
+button {
+  font: inherit; font-weight: 700; padding: 9px 12px; cursor: pointer;
+  background: #2b1838; color: #FFF3D6; border: 1px solid #4a2a6e; border-radius: 6px;
+}
+button:hover { border-color: #FF1F8A; }
+button.primary, button.active { background: #FF1F8A; border-color: #FF1F8A; color: #fff; }
+button.wide { width: 100%; margin: 6px 0; }
+
+.dropzone {
+  border: 2px dashed #00D0B8; border-radius: 8px; padding: 22px 12px;
+  text-align: center; cursor: pointer; color: #FFF3D6;
+}
+.dropzone p { margin: 0; }
+.dropzone.dragover { background: rgba(0, 208, 184, 0.12); }
+.thumbs { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.thumbs canvas {
+  width: 72px; height: 96px; object-fit: cover; border: 2px solid #4a2a6e;
+  border-radius: 6px; cursor: pointer;
+}
+.thumbs canvas:hover, .thumbs canvas.sel { border-color: #FF1F8A; }
+
+.themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.theme-card {
+  display: block; width: 100%; text-align: left; padding: 0 0 6px; overflow: hidden;
+  background: #2b1838; border: 1px solid #4a2a6e; border-radius: 8px; cursor: pointer;
+}
+.theme-card .swatch { height: 20px; }
+.theme-card .tname { display: block; font-family: Anton, sans-serif; font-size: 12px; padding: 4px 8px 0; line-height: 1.2; }
+.theme-card .tmood { display: block; font-size: 10px; color: #b9a3d6; padding: 1px 8px; line-height: 1.25; }
+.theme-card.active { background: #FF1F8A; border-color: #F2C95E; box-shadow: 0 0 0 2px #F2C95E; color: #fff; }
+.theme-card.active .tmood { color: #ffe3f0; }
+
+.btn-grid { display: flex; gap: 5px; flex-wrap: wrap; }
+.btn-grid button { padding: 5px 8px; font-size: 12.5px; }
+.slider { display: block; font-weight: 600; margin: 5px 0; }
+.slider span { float: right; color: #F2C95E; }
+.slider input { width: 100%; accent-color: #FF1F8A; margin-top: 2px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.chips button { padding: 6px 9px; font-size: 12.5px; }
+.chips button.active { background: #F2C95E; border-color: #F2C95E; color: #12081F; }
+
+.stage-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+.stage { display: flex; justify-content: center; }
+#cover {
+  max-width: 560px; max-height: calc(100vh - 190px); width: auto; height: auto;
+  border-radius: 6px; box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55); cursor: grab;
+  background: #12081F;
+}
+#cover:active { cursor: grabbing; }
+.hint { color: #b9a3d6; font-size: 12.5px; margin: 10px 0; }
+.export-all {
+  width: 100%; max-width: 560px; padding: 14px; font-family: Anton, sans-serif;
+  font-size: 17px; letter-spacing: 1px; background: #FF1F8A; border-color: #FF1F8A; color: #fff;
+}
+.status { color: #F2C95E; font-size: 13px; margin: 10px 0 0; text-align: center; }
+
+/* Screenshot scenes */
+body.shot-cover .topbar, body.shot-cover .panel-col, body.shot-cover .hint,
+body.shot-cover .export-all, body.shot-cover .status { display: none; }
+body.shot-cover .layout { padding: 0; }
+body.shot-cover .stage-col { align-items: stretch; }
+body.shot-cover #cover { max-width: none; max-height: none; width: 100vw; height: 100vh; border-radius: 0; box-shadow: none; }
+body.shot-editor .step[data-step="1"], body.shot-editor .step[data-step="3"] { display: none; }

@@ -3,20 +3,126 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cover Snap</title>
+<title>BAY OF LIGHT — Cover Studio</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<main class="app">
-  <section class="controls">
-    <h1>Cover Snap</h1>
-    <p>A photo and a caption, made into a square cover.</p>
-    <label>Photo <input id="photo" type="file" accept="image/*"></label>
-    <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
-    <button id="export" type="button">Export PNG 1080 x 1080</button>
-    <p id="status" role="status"></p>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-name">BAY OF LIGHT</span>
+    <span class="brand-sub">Cover Studio · Vol. 01</span>
+  </div>
+  <nav class="steps-nav" aria-label="Steps">
+    <button type="button" class="step-tab active" data-step="1">1 · Add photos</button>
+    <button type="button" class="step-tab" data-step="2">2 · Caption &amp; look</button>
+    <button type="button" class="step-tab" data-step="3">3 · Export PNG</button>
+  </nav>
+  <div class="history">
+    <button type="button" id="undoBtn" disabled>Undo</button>
+    <button type="button" id="redoBtn" disabled>Redo</button>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="panel-col">
+    <!-- STEP 1 -->
+    <section class="step" data-step="1">
+      <h2>Add photos</h2>
+      <div id="dropZone" class="dropzone" tabindex="0">
+        <p>Drop a photo here, click to browse,<br>or paste an image from the clipboard.</p>
+        <input id="fileInput" type="file" accept="image/*" multiple hidden>
+      </div>
+      <p class="muted"><span id="photoCount">0 photos</span> · your photos never leave this machine.</p>
+      <div class="row">
+        <button type="button" id="btnSamples" class="primary">Load sample photos</button>
+        <button type="button" id="btnAuto">Auto layout</button>
+        <button type="button" id="btnSurprise">🎲 Surprise me</button>
+      </div>
+      <div id="thumbs" class="thumbs"></div>
+      <p class="muted">One photo fills every panel with a smart crop — each panel takes a different slice of the same picture.</p>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step" data-step="2" hidden>
+      <h2>Caption &amp; look</h2>
+      <label class="field">Title
+        <input id="titleInput" type="text" maxlength="24" value="BAY OF LIGHT">
+      </label>
+      <label class="field">Script line
+        <input id="scriptInput" type="text" maxlength="32" value="one last summer">
+      </label>
+      <label class="field">Tagline
+        <input id="taglineInput" type="text" maxlength="48" value="SIX LIVES · ONE BAY · NO WAY BACK">
+      </label>
+      <label class="field">Quote
+        <input id="quoteInput" type="text" maxlength="40" value="PURE GOLDEN-HOUR MAYHEM">
+      </label>
+
+      <h3>Theme — three covers, one world</h3>
+      <div id="themeCards" class="themes"></div>
+      <p class="muted">One click switches the whole cover mood — same layout, same title, a different Bay of Light. Export any theme, or all three.</p>
+
+      <h3>Layout</h3>
+      <div id="layoutBtns" class="btn-grid"></div>
+
+      <h3>Grade</h3>
+      <div id="gradeBtns" class="btn-grid"></div>
+
+      <h3>Look</h3>
+      <label class="slider">Paint <span id="paintVal">50</span>
+        <input id="sliderPaint" type="range" min="0" max="100" value="50">
+      </label>
+      <label class="slider">Grade <span id="gradeVal">85</span>
+        <input id="sliderGrade" type="range" min="0" max="100" value="85">
+      </label>
+      <label class="slider">Halftone <span id="halftoneVal">0</span>
+        <input id="sliderHalftone" type="range" min="0" max="100" value="0">
+      </label>
+      <label class="slider">Grain <span id="grainVal">25</span>
+        <input id="sliderGrain" type="range" min="0" max="100" value="25">
+      </label>
+      <label class="slider">Glow <span id="glowVal">40</span>
+        <input id="sliderGlow" type="range" min="0" max="100" value="40">
+      </label>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step" data-step="3" hidden>
+      <h2>Export PNG</h2>
+      <div id="sizeBtns" class="btn-grid">
+        <button type="button" data-size="1080x1080">1080 × 1080</button>
+        <button type="button" data-size="1080x1350" class="active">1080 × 1350</button>
+        <button type="button" data-size="1920x1080">1920 × 1080</button>
+      </div>
+      <button type="button" id="btnExportOne" class="primary wide">Export this size only</button>
+      <p class="muted" id="panelLabel">Panel 1 — THE DRIVER</p>
+      <div id="panelChips" class="chips"></div>
+      <label class="slider">Panel zoom <span id="zoomVal">100</span>
+        <input id="zoomSlider" type="range" min="0" max="100" value="50">
+      </label>
+      <label class="field">Role tag
+        <input id="roleInput" type="text" maxlength="20" value="THE DRIVER">
+      </label>
+      <label class="field">Sub-line
+        <input id="subInput" type="text" maxlength="48" value="DERMAGA 7 · 6:42 PM · LOOKING FOR TROUBLE">
+      </label>
+      <div class="row wrap">
+        <button type="button" id="btnFlip">Flip</button>
+        <button type="button" id="btnFace">Face</button>
+        <button type="button" id="btnSwap">Swap →</button>
+        <button type="button" id="btnResetCrop">Reset crop</button>
+      </div>
+    </section>
+  </aside>
+
+  <section class="stage-col">
+    <div class="stage">
+      <canvas id="cover" width="1080" height="1350" aria-label="Cover preview"></canvas>
+    </div>
+    <p class="hint">Click a panel to select it · Drag to move · Scroll to zoom</p>
+    <button type="button" id="btnExportAll" class="export-all">Export all three</button>
+    <p id="status" class="status" role="status">Load a photo to begin.</p>
   </section>
-  <canvas id="cover" width="1080" height="1080" aria-label="The cover"></canvas>
 </main>
 <script type="module" src="./src/main.js"></script>
 </body>

@@ -1,17 +1,13 @@
-// A working gta6-cover-art-01 entry (Node 22, standard library only): the app is this directory's app/ folder, plain
-// static files a desktop browser loads offline (app/index.html and its ES modules, no library and no network
-// request), and the program hands it in. It copies app/ and screenshots/ from beside this file to /output and writes
-// /output/dossier.json, the summary the judge reads, with the vendored make.fun library. Only the plumbing, not the
-// cover art the bounty asks for: Cover Snap, a plain one-photo square cover with a sunset tint and a bold caption,
-// exported as a 1080 x 1080 PNG. Its two sample photos (app/samples/) were made for make.fun with an image model and
-// are free to use. Build your own GTA-style cover maker in its place, put your 3 or 4 PNG or JPEG screenshots in
-// screenshots/ (the first by name is the cover) and run it.
+// Bay of Light Cover Studio — submission program (Node 22, standard library only).
+// It hands the finished app to the make.fun judge: it copies app/ and screenshots/
+// from beside this file into the output directory and writes dossier.json there
+// with the vendored make.fun library.
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Run it with MAKEFUN_OUTPUT_DIR pointing at a scratch folder while testing:
+//   MAKEFUN_OUTPUT_DIR=/tmp/out node main.ts
+// Without that variable it writes to /output, the grader's directory.
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
@@ -19,15 +15,30 @@ import { buildDossier } from './vendor/makefun-app.ts';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+const appDir = join(here, 'app');
+const shotsDir = join(here, 'screenshots');
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of app
-// files, in all, or a path under app/ over 1000 bytes: app/ counts beside /output's own 1000-entry cap, its
-// screenshots/ and dossier.json).
+if (!existsSync(join(appDir, 'index.html'))) {
+  throw new Error('missing app/index.html — refusing to submit a half-built entry');
+}
+if (!existsSync(shotsDir) || !existsSync(join(shotsDir, '1-cover.jpg'))) {
+  throw new Error('missing screenshots/1-cover.jpg — refusing to submit a half-built entry');
+}
+// The judge needs at least one screenshot and at most four; count them early
+// so a stray extra file fails here, loudly, instead of inside buildDossier.
+const shotFiles = readdirSync(shotsDir).filter((f) => /\.(jpe?g|png)$/i.test(f));
+if (shotFiles.length === 0 || shotFiles.length > 4) {
+  throw new Error(`expected 1–4 screenshots, found ${shotFiles.length}`);
+}
+
+mkdirSync(join(out, 'app'), { recursive: true });
+cpSync(appDir, join(out, 'app'), { recursive: true });
+mkdirSync(join(out, 'screenshots'), { recursive: true });
+cpSync(shotsDir, join(out, 'screenshots'), { recursive: true });
+
+// Caps from the scorer's gate: the text cap shapes the dossier bytes; the rest
+// refuse an entry the scorer would refuse anyway (too many / too big screenshots,
+// too many or too heavy app files, or an app path that is too long).
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {
@@ -38,3 +49,4 @@ writeFileSync(
     app_path_max_bytes: 1000,
   }),
 );
+console.log(`submitted ${shotFiles.length} screenshot(s) to ${out}`);
